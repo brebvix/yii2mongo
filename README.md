@@ -6,7 +6,7 @@ An extension for using the MongoDB library in a style similar to ActiveRecord.
 composer require brebvix/yii2mongo
 ```
 
-###Add to the configuration file *params-local.php*:
+#### Add to the configuration file *params-local.php*:
 ```php
 'mongo' => [
     'connectionUrl' => 'mongodb://<username>:<password>@<host>:<port>',
