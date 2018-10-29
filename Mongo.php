@@ -17,6 +17,7 @@
 
 namespace brebvix;
 
+use Traversable;
 use MongoDB\BulkWriteResult;
 use MongoDB\Collection;
 use MongoDB\Database;
@@ -34,7 +35,6 @@ use MongoDB\Client;
 class Mongo extends Client
 {
     protected static $collection = null;
-    protected $collectionName = null;
 
     /**
      * Mongo constructor.
@@ -85,7 +85,7 @@ class Mongo extends Client
      * @param array $options
      * @return \Traversable
      */
-    public static function aggregate(array $pipeline, array $options = []): \Traversable
+    public static function aggregate(array $pipeline, array $options = []): Traversable
     {
         return self::collection()->aggregate($pipeline, $options);
     }
