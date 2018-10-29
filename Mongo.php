@@ -34,7 +34,7 @@ use MongoDB\Client;
 
 class Mongo extends Client
 {
-    protected static $collection = null;
+    protected static $collection = [];
 
     /**
      * Mongo constructor.
@@ -68,16 +68,18 @@ class Mongo extends Client
      */
     protected static function collection(): Collection
     {
-        if (!is_object(self::$collection)) {
+        $collectionName = get_called_class()::collectionName();
+
+        if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
             $client = new Client();
 
-            self::$collection = $client->selectCollection(
+            self::$collection[$collectionName] = $client->selectCollection(
                 Yii::$app->params['mongo']['databaseName'],
-                get_called_class()::collectionName()
+                $collectionName
             );
         }
 
-        return self::$collection;
+        return self::$collection[$collectionName];
     }
 
     /**
