@@ -35,14 +35,7 @@ use MongoDB\Client;
 class Mongo extends Client
 {
     protected static $collection = [];
-
-    /**
-     * Mongo constructor.
-     */
-    public function __construct()
-    {
-        parent::__construct(Yii::$app->params['mongo']['connectionUrl']);
-    }
+    private static $_initialized = false;
 
     /**
      * @param array $options
@@ -68,6 +61,12 @@ class Mongo extends Client
      */
     protected static function collection(): Collection
     {
+        if (!self::$_initialized) {
+            self::$_initialized = true;
+
+            parent::__construct(Yii::$app->params['mongo']['connectionUrl']);
+        }
+
         $collectionName = get_called_class()::collectionName();
 
         if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
