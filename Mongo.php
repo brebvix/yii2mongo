@@ -64,7 +64,7 @@ class Mongo extends Client
     protected static function collection(): Collection
     {
         if (!self::$_initialized) {
-            self::$_initialized = true;
+            self::$_initialized = self::_initialize();
         }
 
         $collectionName = get_called_class()::collectionName();
@@ -81,9 +81,15 @@ class Mongo extends Client
         return self::$collection[$collectionName];
     }
 
-    private static function _initialize()
+    private static function _initialize(): bool
     {
         self::$_manager = new Manager(Yii::$app->params['mongo']['connectionUrl']);
+
+        if (is_object(self::$_manager)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
