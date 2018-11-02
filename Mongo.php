@@ -17,6 +17,7 @@
 
 namespace brebvix;
 
+use MongoDB\Driver\Manager;
 use Traversable;
 use MongoDB\BulkWriteResult;
 use MongoDB\Collection;
@@ -36,6 +37,7 @@ class Mongo extends Client
 {
     protected static $collection = [];
     private static $_initialized = false;
+    private static $_manager;
 
     /**
      * @param array $options
@@ -70,15 +72,20 @@ class Mongo extends Client
         $collectionName = get_called_class()::collectionName();
 
         if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
-            $client = new Client();
 
-            self::$collection[$collectionName] = $client->selectCollection(
+            self::$collection[$collectionName] = new Collection(
+                self::$_manager,
                 Yii::$app->params['mongo']['databaseName'],
                 $collectionName
             );
         }
 
         return self::$collection[$collectionName];
+    }
+
+    private static function _initialize()
+    {
+        self::$_manager = new Manager(Yii::$app->params['mongo']['connectionUrl']);
     }
 
     /**
