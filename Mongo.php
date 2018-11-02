@@ -65,8 +65,6 @@ class Mongo extends Client
     {
         if (!self::$_initialized) {
             self::$_initialized = true;
-
-            parent::__construct(Yii::$app->params['mongo']['connectionUrl']);
         }
 
         $collectionName = get_called_class()::collectionName();
