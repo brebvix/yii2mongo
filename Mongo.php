@@ -384,7 +384,7 @@ class Mongo extends Client
         }
 
         try {
-            return self::collection()->insterOne($document, $options);
+            return self::collection()->instertOne($document, $options);
         } catch (\Exception $exception) {
             return self::insertOne($document, $options, ++$attemptNumber);
         }
