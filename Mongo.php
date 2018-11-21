@@ -69,16 +69,23 @@ class Mongo extends Client
 
         $collectionName = get_called_class()::collectionName();
 
-        if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
 
-            self::$collection[$collectionName] = new Collection(
-                self::$_manager,
-                Yii::$app->params['mongo']['databaseName'],
-                $collectionName
-            );
-        }
+        return new Collection(
+            self::$_manager,
+            Yii::$app->params['mongo']['databaseName'],
+            $collectionName
+        );
 
-        return self::$collection[$collectionName];
+//        if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
+//
+//            self::$collection[$collectionName] = new Collection(
+//                self::$_manager,
+//                Yii::$app->params['mongo']['databaseName'],
+//                $collectionName
+//            );
+//        }
+//
+//        return self::$collection[$collectionName];
     }
 
     private static function _initialize(): bool
