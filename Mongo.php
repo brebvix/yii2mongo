@@ -458,6 +458,7 @@ class Mongo extends Client
         try {
             return self::collection()->updateOne($filter, $update, $options);
         } catch (\Exception $exception) {
+            usleep(200000);
             return self::updateOne($filter, $update, $options, ++$attemptNumber);
         }
     }
