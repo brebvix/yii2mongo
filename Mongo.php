@@ -101,7 +101,7 @@ class Mongo extends Client
      */
     public static function aggregate(array $pipeline, array $options = [], int $attemptNumber = 0): Traversable
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -130,7 +130,7 @@ class Mongo extends Client
      */
     public static function count($filter = [], array $options = [], int $attemptNumber = 0): int
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -189,7 +189,7 @@ class Mongo extends Client
      */
     public static function deleteOne($filter, array $options = [], int $attemptNumber = 0): DeleteResult
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -266,7 +266,7 @@ class Mongo extends Client
      */
     public static function find($filter = [], array $options = [], int $attemptNumber = 0): Cursor
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -285,7 +285,7 @@ class Mongo extends Client
      */
     public static function findOne($filter = [], array $options = [], int $attemptNumber = 0)
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -360,7 +360,7 @@ class Mongo extends Client
      */
     public static function insertMany(array $documents, array $options = [], int $attemptNumber = 0): InsertManyResult
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -379,7 +379,7 @@ class Mongo extends Client
      */
     public static function insertOne($document, array $options = [], int $attemptNumber = 0): InsertOneResult
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -431,7 +431,7 @@ class Mongo extends Client
      */
     public static function updateMany($filter, $update, array $options = [], int $attemptNumber = 0): UpdateResult
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
@@ -451,14 +451,13 @@ class Mongo extends Client
      */
     public static function updateOne($filter, $update, array $options = [], int $attemptNumber = 0): UpdateResult
     {
-        if ($attemptNumber >= 3) {
+        if ($attemptNumber >= 15) {
             return false;
         }
 
         try {
             return self::collection()->updateOne($filter, $update, $options);
         } catch (\Exception $exception) {
-            usleep(200000);
             return self::updateOne($filter, $update, $options, ++$attemptNumber);
         }
     }
