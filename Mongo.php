@@ -65,8 +65,11 @@ class Mongo extends Client
      */
     public static function getNewSession(array $options = [])
     {
-        $object = new self;
-        return $object->startSession($options);
+        if (!self::$_initialized) {
+            self::$_initialized = self::_initialize();
+        }
+
+        return  self::$_manager->startSession($options);
     }
 
     /**
