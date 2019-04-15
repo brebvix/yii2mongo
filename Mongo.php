@@ -60,6 +60,16 @@ class Mongo extends Client
     }
 
     /**
+     * @param array $options
+     * @return \MongoDB\MongoDB\Driver\Session
+     */
+    public static function getNewSession(array $options = [])
+    {
+        $object = new self;
+        return $object->startSession($options);
+    }
+
+    /**
      * @return Collection|null
      */
     protected static function collection(): Collection
