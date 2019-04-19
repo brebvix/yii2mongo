@@ -17,22 +17,21 @@
 
 namespace brebvix;
 
-use MongoDB\Driver\Exception\RuntimeException;
-use MongoDB\Driver\Manager;
-use Traversable;
 use MongoDB\BulkWriteResult;
+use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
 use MongoDB\DeleteResult;
 use MongoDB\Driver\Cursor;
+use MongoDB\Driver\Manager;
 use MongoDB\InsertManyResult;
 use MongoDB\InsertOneResult;
 use MongoDB\MapReduceResult;
 use MongoDB\Model\IndexInfoIterator;
 use MongoDB\Operation\Explainable;
 use MongoDB\UpdateResult;
+use Traversable;
 use Yii;
-use MongoDB\Client;
 
 class Mongo extends Client
 {
@@ -69,7 +68,7 @@ class Mongo extends Client
             self::$_initialized = self::_initialize();
         }
 
-        return  self::$_manager->startSession($options);
+        return self::$_manager->startSession($options);
     }
 
     /**
@@ -109,20 +108,12 @@ class Mongo extends Client
     /**
      * @param array $pipeline
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return \Traversable|bool
      */
-    public static function aggregate(array $pipeline, array $options = [], int $attemptNumber = 0): Traversable
+    public static function aggregate(array $pipeline, array $options = []): Traversable
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->aggregate($pipeline, $options);
-        } catch (\Exception $exception) {
-            return self::aggregate($pipeline, $options, ++$attemptNumber);
-        }
+        return self::collection()->aggregate($pipeline, $options);
     }
 
     /**
@@ -138,20 +129,12 @@ class Mongo extends Client
     /**
      * @param array $filter
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return int
      */
-    public static function count($filter = [], array $options = [], int $attemptNumber = 0): int
+    public static function count($filter = [], array $options = []): int
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->count($filter, $options);
-        } catch (\Exception $exception) {
-            return self::count($filter, $options, ++$attemptNumber);
-        }
+        return self::collection()->count($filter, $options);
     }
 
     /**
@@ -197,20 +180,12 @@ class Mongo extends Client
     /**
      * @param $filter
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return \MongoDB\DeleteResult|bool
      */
-    public static function deleteOne($filter, array $options = [], int $attemptNumber = 0): DeleteResult
+    public static function deleteOne($filter, array $options = []): DeleteResult
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->deleteOne($filter, $options);
-        } catch (\Exception $exception) {
-            return self::deleteOne($filter, $options, ++$attemptNumber);
-        }
+        return self::collection()->deleteOne($filter, $options);
     }
 
     /**
@@ -274,39 +249,23 @@ class Mongo extends Client
     /**
      * @param array $filter
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return \MongoDB\Driver\Cursor|bool
      */
-    public static function find($filter = [], array $options = [], int $attemptNumber = 0): Cursor
+    public static function find($filter = [], array $options = []): Cursor
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->find($filter, $options);
-        } catch (\Exception $exception) {
-            return self::find($filter, $options, ++$attemptNumber);
-        }
+        return self::collection()->find($filter, $options);
     }
 
     /**
      * @param array $filter
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return array|null|object|bool
      */
-    public static function findOne($filter = [], array $options = [], int $attemptNumber = 0)
+    public static function findOne($filter = [], array $options = [])
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->findOne($filter, $options);
-        } catch (\Exception $exception) {
-            return self::findOne($filter, $options, ++$attemptNumber);
-        }
+        return self::collection()->findOne($filter, $options);
     }
 
     /**
@@ -368,39 +327,24 @@ class Mongo extends Client
     /**
      * @param array $documents
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return \MongoDB\InsertManyResult|bool
      */
-    public static function insertMany(array $documents, array $options = [], int $attemptNumber = 0): InsertManyResult
+    public static function insertMany(array $documents, array $options = []): InsertManyResult
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->insterMany($documents, $options);
-        } catch (\Exception $exception) {
-            return self::insertMany($documents, $options, ++$attemptNumber);
-        }
+        return self::collection()->insterMany($documents, $options);
     }
 
     /**
      * @param $document
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return \MongoDB\InsertOneResult|bool
      */
-    public static function insertOne($document, array $options = [], int $attemptNumber = 0): InsertOneResult
+    public static function insertOne($document, array $options = []): InsertOneResult
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
+        return self::collection()->insertOne($document, $options);
 
-        try {
-            return self::collection()->insertOne($document, $options);
-        } catch (\Exception $exception) {
-            return self::insertOne($document, $options, ++$attemptNumber);
-        }
     }
 
     /**
@@ -439,40 +383,24 @@ class Mongo extends Client
      * @param $filter
      * @param $update
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return UpdateResult|bool
      */
-    public static function updateMany($filter, $update, array $options = [], int $attemptNumber = 0): UpdateResult
+    public static function updateMany($filter, $update, array $options = []): UpdateResult
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->updateMany($filter, $update, $options);
-        } catch (\Exception $exception) {
-            return self::updateMany($filter, $update, $options, ++$attemptNumber);
-        }
+        return self::collection()->updateMany($filter, $update, $options);
     }
 
     /**
      * @param $filter
      * @param $update
      * @param array $options
-     * @param int $attemptNumber
+     *
      * @return \MongoDB\UpdateResult|bool
      */
-    public static function updateOne($filter, $update, array $options = [], int $attemptNumber = 0): UpdateResult
+    public static function updateOne($filter, $update, array $options = []): UpdateResult
     {
-        if ($attemptNumber >= 15) {
-            return false;
-        }
-
-        try {
-            return self::collection()->updateOne($filter, $update, $options);
-        } catch (\Exception $exception) {
-            return self::updateOne($filter, $update, $options, ++$attemptNumber);
-        }
+        return self::collection()->updateOne($filter, $update, $options);
     }
 
     /**
