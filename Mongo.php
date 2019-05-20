@@ -261,7 +261,7 @@ class Mongo extends Client
      * @param array $filter
      * @param array $options
      *
-     * @return array|null|object|bool|self
+     * @return array|null|object|bool|static
      */
     public static function findOne($filter = [], array $options = [])
     {
