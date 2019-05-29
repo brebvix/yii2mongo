@@ -332,7 +332,7 @@ class Mongo extends Client
      */
     public static function insertMany(array $documents, array $options = []): InsertManyResult
     {
-        return self::collection()->insterMany($documents, $options);
+        return self::collection()->insertMany($documents, $options);
     }
 
     /**
