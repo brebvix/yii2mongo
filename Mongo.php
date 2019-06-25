@@ -463,6 +463,7 @@ class Mongo extends Client
     public static function commitSession()
     {
         self::$_globalSession->commitTransaction();
+        self::cancelLastSession();
     }
 
     /**
