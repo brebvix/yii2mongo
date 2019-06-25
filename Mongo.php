@@ -450,7 +450,12 @@ class Mongo extends Client
     public static function cancelLastSession()
     {
         if (is_object(self::$_globalSession)) {
-            self::$_globalSession->abortTransaction();
+            try {
+                self::$_globalSession->abortTransaction();
+            } catch (\Exception $exception) {
+
+            }
+
             self::$_globalSession->endSession();
         }
 
