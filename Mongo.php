@@ -17,13 +17,17 @@
 
 namespace brebvix;
 
-use MongoDB\BulkWriteResult;
+use MongoDB\BSON\JavascriptInterface;
+use MongoDB\BulkWriteResult as BulkWriteResultAlias;
 use MongoDB\Client;
 use MongoDB\Collection;
 use MongoDB\Database;
 use MongoDB\DeleteResult;
 use MongoDB\Driver\Cursor;
 use MongoDB\Driver\Manager;
+use MongoDB\Driver\ReadConcern;
+use MongoDB\Driver\Session;
+use MongoDB\Driver\WriteConcern;
 use MongoDB\InsertManyResult;
 use MongoDB\InsertOneResult;
 use MongoDB\MapReduceResult;
@@ -33,11 +37,23 @@ use MongoDB\UpdateResult;
 use Traversable;
 use Yii;
 
+/**
+ * Class Mongo
+ * @package brebvix
+ */
 class Mongo extends Client
 {
+    /** @var Collection[] $collection */
     protected static $collection = [];
+
+    /** @var bool $_initialized */
     private static $_initialized = false;
+
+    /** @var Manager $_manager */
     private static $_manager;
+
+    /** @var Session $_globalSession */
+    protected static $_globalSession;
 
     /**
      * @param array $options
@@ -60,7 +76,7 @@ class Mongo extends Client
 
     /**
      * @param array $options
-     * @return \MongoDB\MongoDB\Driver\Session
+     * @return Session
      */
     public static function getNewSession(array $options = [])
     {
@@ -83,7 +99,6 @@ class Mongo extends Client
         $collectionName = get_called_class()::collectionName();
 
         if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
-
             self::$collection[$collectionName] = new Collection(
                 self::$_manager,
                 Yii::$app->params['mongo']['databaseName'],
@@ -94,6 +109,9 @@ class Mongo extends Client
         return self::$collection[$collectionName];
     }
 
+    /**
+     * @return bool
+     */
     private static function _initialize(): bool
     {
         self::$_manager = new Manager(Yii::$app->params['mongo']['connectionUrl']);
@@ -109,7 +127,7 @@ class Mongo extends Client
      * @param array $pipeline
      * @param array $options
      *
-     * @return \Traversable|bool
+     * @return Traversable|bool
      */
     public static function aggregate(array $pipeline, array $options = []): Traversable
     {
@@ -119,9 +137,9 @@ class Mongo extends Client
     /**
      * @param array $operations
      * @param array $options
-     * @return \MongoDB\BulkWriteResult
+     * @return BulkWriteResultAlias
      */
-    public static function bulkWrite(array $operations, array $options = []): BulkWriteResult
+    public static function bulkWrite(array $operations, array $options = []): BulkWriteResultAlias
     {
         return self::collection()->bulkWrite($operations, $options);
     }
@@ -134,7 +152,7 @@ class Mongo extends Client
      */
     public static function count($filter = [], array $options = []): int
     {
-        return self::collection()->count($filter, $options);
+        return self::collection()->count($filter, self::_getOptions($options));
     }
 
     /**
@@ -144,7 +162,7 @@ class Mongo extends Client
      */
     public static function countDocuments($filter = [], array $options = []): int
     {
-        return self::collection()->countDocuments($filter, $options);
+        return self::collection()->countDocuments($filter, self::_getOptions($options));
     }
 
     /**
@@ -174,7 +192,7 @@ class Mongo extends Client
      */
     public static function deleteMany($filter, array $options = []): DeleteResult
     {
-        return self::collection()->deleteMany($filter, $options);
+        return self::collection()->deleteMany($filter, self::_getOptions($options));
     }
 
     /**
@@ -185,7 +203,7 @@ class Mongo extends Client
      */
     public static function deleteOne($filter, array $options = []): DeleteResult
     {
-        return self::collection()->deleteOne($filter, $options);
+        return self::collection()->deleteOne($filter, self::_getOptions($options));
     }
 
     /**
@@ -196,7 +214,7 @@ class Mongo extends Client
      */
     public static function distinct($fieldName, $filter = [], array $options = [])
     {
-        return self::collection()->distinct($fieldName, $filter, $options);
+        return self::collection()->distinct($fieldName, $filter, self::_getOptions($options));
     }
 
     /**
@@ -243,7 +261,7 @@ class Mongo extends Client
      */
     public static function explain(Explainable $explainable, array $options = [])
     {
-        return self::collection()->explain($explainable, $options);
+        return self::collection()->explain($explainable, self::_getOptions($options));
     }
 
     /**
@@ -254,7 +272,7 @@ class Mongo extends Client
      */
     public static function find($filter = [], array $options = []): Cursor
     {
-        return self::collection()->find($filter, $options);
+        return self::collection()->find($filter, self::_getOptions($options));
     }
 
     /**
@@ -265,7 +283,7 @@ class Mongo extends Client
      */
     public static function findOne($filter = [], array $options = [])
     {
-        return self::collection()->findOne($filter, $options);
+        return self::collection()->findOne($filter, self::_getOptions($options));
     }
 
     /**
@@ -275,7 +293,7 @@ class Mongo extends Client
      */
     public static function findOneAndDelete($filter, array $options = [])
     {
-        return self::collection()->findOneAndDelete($filter, $options);
+        return self::collection()->findOneAndDelete($filter, self::_getOptions($options));
     }
 
     /**
@@ -286,7 +304,7 @@ class Mongo extends Client
      */
     public static function findOneAndReplace($filter, $replacement, array $options = [])
     {
-        return self::collection()->findOneAndReplace($filter, $replacement, $options);
+        return self::collection()->findOneAndReplace($filter, $replacement, self::_getOptions($options));
     }
 
     /**
@@ -297,7 +315,7 @@ class Mongo extends Client
      */
     public static function findOneAndUpdate($filter, $update, array $options = [])
     {
-        return self::collection()->findOneAndUpdate($filter, $update, $options);
+        return self::collection()->findOneAndUpdate($filter, $update, self::_getOptions($options));
     }
 
     /**
@@ -328,28 +346,28 @@ class Mongo extends Client
      * @param array $documents
      * @param array $options
      *
-     * @return \MongoDB\InsertManyResult|bool
+     * @return InsertManyResult|bool
      */
     public static function insertMany(array $documents, array $options = []): InsertManyResult
     {
-        return self::collection()->insertMany($documents, $options);
+        return self::collection()->insertMany($documents, self::_getOptions($options));
     }
 
     /**
      * @param $document
      * @param array $options
      *
-     * @return \MongoDB\InsertOneResult|bool
+     * @return InsertOneResult|bool
      */
     public static function insertOne($document, array $options = []): InsertOneResult
     {
-        return self::collection()->insertOne($document, $options);
+        return self::collection()->insertOne($document, self::_getOptions($options));
 
     }
 
     /**
      * @param array $options
-     * @return \MongoDB\Model\IndexInfoIterator
+     * @return IndexInfoIterator
      */
     public static function listIndexes(array $options = []): IndexInfoIterator
     {
@@ -361,11 +379,11 @@ class Mongo extends Client
      * @param JavascriptInterface $reduce
      * @param $out
      * @param array $options
-     * @return \MongoDB\MapReduceResult
+     * @return MapReduceResult
      */
     public static function mapReduce(JavascriptInterface $map, JavascriptInterface $reduce, $out, array $options = []): MapReduceResult
     {
-        return self::collection()->mapReduce($map, $reduce, $out, $options);
+        return self::collection()->mapReduce($map, $reduce, $out, self::_getOptions($options));
     }
 
     /**
@@ -376,7 +394,7 @@ class Mongo extends Client
      */
     public static function replaceOne($filter, $replacement, array $options = []): UpdateResult
     {
-        return self::collection()->replaceOne($filter, $replacement, $options);
+        return self::collection()->replaceOne($filter, $replacement, self::_getOptions($options));
     }
 
     /**
@@ -388,7 +406,7 @@ class Mongo extends Client
      */
     public static function updateMany($filter, $update, array $options = []): UpdateResult
     {
-        return self::collection()->updateMany($filter, $update, $options);
+        return self::collection()->updateMany($filter, $update, self::_getOptions($options));
     }
 
     /**
@@ -396,11 +414,11 @@ class Mongo extends Client
      * @param $update
      * @param array $options
      *
-     * @return \MongoDB\UpdateResult|bool
+     * @return UpdateResult|bool
      */
     public static function updateOne($filter, $update, array $options = []): UpdateResult
     {
-        return self::collection()->updateOne($filter, $update, $options);
+        return self::collection()->updateOne($filter, $update, self::_getOptions($options));
     }
 
     /**
@@ -410,5 +428,53 @@ class Mongo extends Client
     public static function withOptions(array $options = []): Collection
     {
         return self::collection()->withOptions($options);
+    }
+
+    /**
+     * @return void
+     */
+    public static function startNewSession()
+    {
+        self::_initialize();
+
+        self::$_globalSession = self::$_manager->startSession();
+        self::$_globalSession->startTransaction([
+            'readConcern' => new ReadConcern('snapshot'),
+            'writeConcern' => new WriteConcern(WriteConcern::MAJORITY)
+        ]);
+    }
+
+    /**
+     * @return void
+     */
+    public static function cancelLastSession()
+    {
+        if (is_object(self::$_globalSession)) {
+            self::$_globalSession->abortTransaction();
+            self::$_globalSession->endSession();
+        }
+
+        self::$_globalSession = null;
+    }
+
+    /**
+     * @return void
+     */
+    public static function commitSession()
+    {
+        self::$_globalSession->commitTransaction();
+    }
+
+    /**
+     * @param array $options
+     * @return array
+     */
+    private static function _getOptions(array $options = []): array
+    {
+        if (is_object(self::$_globalSession)) {
+            $options['session'] = self::$_globalSession;
+        }
+
+        return $options;
     }
 }
