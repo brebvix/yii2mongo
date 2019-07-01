@@ -152,7 +152,7 @@ class Mongo extends Client
      */
     public static function count($filter = [], array $options = []): int
     {
-        return self::collection()->count($filter, self::_getOptions($options));
+        return self::collection()->count($filter, $options);
     }
 
     /**
