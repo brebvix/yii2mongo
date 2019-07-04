@@ -17,6 +17,8 @@
 
 namespace brebvix;
 
+use CollectionInterface;
+use Exception;
 use MongoDB\BSON\JavascriptInterface;
 use MongoDB\BulkWriteResult as BulkWriteResultAlias;
 use MongoDB\Client;
@@ -45,9 +47,6 @@ class Mongo extends Client
 {
     /** @var Collection[] $collection */
     protected static $collection = [];
-
-    /** @var bool $_initialized */
-    private static $_initialized = false;
 
     /** @var Manager $_manager */
     private static $_manager;
@@ -80,11 +79,7 @@ class Mongo extends Client
      */
     public static function getNewSession(array $options = [])
     {
-        if (!self::$_initialized) {
-            self::$_initialized = self::_initialize();
-        }
-
-        return self::$_manager->startSession($options);
+        return self::_getManager()->startSession($options);
     }
 
     /**
@@ -92,15 +87,15 @@ class Mongo extends Client
      */
     protected static function collection(): Collection
     {
-        if (!self::$_initialized) {
-            self::$_initialized = self::_initialize();
-        }
+        /**
+         * @var CollectionInterface $collectionClass
+         */
+        $collectionClass = get_called_class();
+        $collectionName = $collectionClass::collectionName();
 
-        $collectionName = get_called_class()::collectionName();
-
-        if (!isset(self::$collection[$collectionName]) || !is_object(self::$collection[$collectionName])) {
+        if (!isset(self::$collection[$collectionName])) {
             self::$collection[$collectionName] = new Collection(
-                self::$_manager,
+                self::_getManager(),
                 Yii::$app->params['mongo']['databaseName'],
                 $collectionName
             );
@@ -110,17 +105,11 @@ class Mongo extends Client
     }
 
     /**
-     * @return bool
+     * @return Manager
      */
-    private static function _initialize(): bool
+    private static function _getManager(): Manager
     {
-        self::$_manager = new Manager(Yii::$app->params['mongo']['connectionUrl']);
-
-        if (is_object(self::$_manager)) {
-            return true;
-        }
-
-        return false;
+        return self::$_manager ?: (self::$_manager = new Manager(Yii::$app->params['mongo']['connectionUrl']));
     }
 
     /**
@@ -178,7 +167,7 @@ class Mongo extends Client
     /**
      * @param array $indexes
      * @param array $options
-     * @return \string[]
+     * @return string[]
      */
     public static function createIndexes(array $indexes, array $options = [])
     {
@@ -199,7 +188,7 @@ class Mongo extends Client
      * @param $filter
      * @param array $options
      *
-     * @return \MongoDB\DeleteResult|bool
+     * @return DeleteResult|bool
      */
     public static function deleteOne($filter, array $options = []): DeleteResult
     {
@@ -210,7 +199,7 @@ class Mongo extends Client
      * @param $fieldName
      * @param array $filter
      * @param array $options
-     * @return \mixed[]
+     * @return mixed[]
      */
     public static function distinct($fieldName, $filter = [], array $options = [])
     {
@@ -268,7 +257,7 @@ class Mongo extends Client
      * @param array $filter
      * @param array $options
      *
-     * @return \MongoDB\Driver\Cursor|bool
+     * @return Cursor|bool
      */
     public static function find($filter = [], array $options = []): Cursor
     {
@@ -435,9 +424,8 @@ class Mongo extends Client
      */
     public static function startNewSession()
     {
-        self::_initialize();
+        self::$_globalSession = self::_getManager()->startSession();
 
-        self::$_globalSession = self::$_manager->startSession();
         self::$_globalSession->startTransaction([
             'readConcern' => new ReadConcern('snapshot'),
             'writeConcern' => new WriteConcern(WriteConcern::MAJORITY)
@@ -452,8 +440,7 @@ class Mongo extends Client
         if (is_object(self::$_globalSession)) {
             try {
                 self::$_globalSession->abortTransaction();
-            } catch (\Exception $exception) {
-
+            } catch (Exception $exception) {
             }
 
             self::$_globalSession->endSession();
